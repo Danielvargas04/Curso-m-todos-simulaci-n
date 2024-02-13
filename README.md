@@ -1,1 +1,1 @@
-# Curso-m-todos-simulaci-n
+# Curso-métodos-simulación

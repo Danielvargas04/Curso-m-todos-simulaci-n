@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const double omega = 1.0;
+const double omega = 2.0;
 
 double f1(double t, double x1, double x2)
 {
@@ -29,9 +29,9 @@ void unpasoRK(double &t, double &x1, double &x2, double dt)
 
 int main()
 {
-    double t, x1, x2, dt=0.0625;
+    double t, x1, x2, dt=0.01;
 
-    for (t=0,x1=1, x2=0; t <= 7; )
+    for (t=0, x1=1, x2=0; t <= 7; )
     {
         cout<<t<<" "<<x2<<" "<<sin(2*t)<<endl;
         unpasoRK(t,x1,x2,dt);

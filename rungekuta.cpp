@@ -8,7 +8,7 @@ double f(double t, double x)
     return x;
 }
 
-void unpasoRK(double &t, double &x, double dt)
+void unpasoRK(double & t, double & x, double dt)
 {
     double dx1, dx2, dx3, dx4;
     dx1 = dt*f(t,x);

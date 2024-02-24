@@ -5,12 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-datos=pd.read_csv('data/datosEDO.dat',sep=' ', names=['t','posicion','velocidad'])
+datos=pd.read_csv('data/datosparabola.dat',sep=' ', names=['x','y'])
 #datoskuta=pd.read_csv('data/datoskuta.dat',sep=' ', names=['x','y','z'])
 
 fig, ax = plt.subplots()
-ax.plot(datos['t'], datos['posicion'], label = 'Posicion')
-ax.plot(datos['t'], datos['velocidad'], label = 'Velocidad')
+ax.plot(datos['x'], datos['y'], label = 'Posicion')
 ax.legend()
 ax.grid(True)
 ax.set_title('Oscilador armonico resuelto con Rungekuta')

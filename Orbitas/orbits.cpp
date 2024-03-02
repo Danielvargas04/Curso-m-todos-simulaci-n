@@ -11,6 +11,7 @@ class planet;
 class planet
 {
 private:
+    //  posicion, velocidad, fuerza, masa, tamaño
     double r[3], v[3], f[3]; double mass, radius; 
 public:
     void init(double x0, double y0, double z0, double vx0, double vy0,
@@ -32,7 +33,8 @@ void planet::init(double x0, double y0, double z0, double vx0, double vy0,
     mass=mass0; radius=radius0;
 }
 void planet::calcularfuerza(void)
-{
+{   
+    //fuerza central gravitacional
     double aux = GM*mass*pow(r[0]*r[0]+r[1]*r[1]+r[2]*r[2],-1.5);
     for (int i = 0; i <= 2; i++)
     {
@@ -41,6 +43,7 @@ void planet::calcularfuerza(void)
 }
 void planet::move(double dt)
 {
+    //EDOs resueltas mediante Euler
     for (int i = 0; i <= 2; i++)
     {
         v[i] += f[i]*dt/mass;
@@ -49,6 +52,7 @@ void planet::move(double dt)
 }
 
 int main(){
+    //constantes de movimiento
     double t, dt=0.001;
     double r0=10.0;
     double omega = sqrt(GM/(pow(r0,3)));

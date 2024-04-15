@@ -58,9 +58,7 @@ void Cuerpo::Mueva_r(double dt,double coeficiente){
 void Cuerpo::Mueva_V(double dt,double coeficiente){
     V+=F*(coeficiente*dt/m);
 }
-void Cuerpo::Dibujese(void){
-    std::cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t)";
-}
+
 
 //------- Funciones de la clase Colisionador --------
 void Colisionador::CalculeTodasLasFuerzas(Cuerpo * bolas, double dt){
@@ -79,7 +77,7 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * bolas, double dt){
     }
     
     //Calculo la fuerza de cada particula con su vecina siguiente
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N-1; i++)
     {       
         CalculeFuerzaEntre(bolas[i],bolas[i+1]);
     }
@@ -105,28 +103,8 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & bola0,Cuerpo & bola1){
     bola0.SumeFuerza(f0); bola1.SumeFuerza(f1);
 }
 
-//----------- Funciones Globales -----------
-//---Funciones de Animacion---
-void InicieAnimacion(void){
-    std::cout<<"set terminal gif animate"<<std::endl; 
-    std::cout<<"set output 'resortes.gif'"<<std::endl;
-    std::cout<<"unset key"<<std::endl;
-    std::cout<<"set xrange[-5:45]"<<std::endl;
-    std::cout<<"set yrange[-8:8]"<<std::endl;
-    std::cout<<"set size ratio -1"<<std::endl;
-    std::cout<<"set parametric"<<std::endl;
-    std::cout<<"set trange [0:7]"<<std::endl;
-    std::cout<<"set isosamples 12"<<std::endl;  
-}
-void InicieCuadro(void){
-    std::cout<<"plot 0,0 ";
-}
-void TermineCuadro(void){
-    std::cout<<std::endl;
-}
 
-
-int main()
+double simulacion(double omega)
 {
     //Cosntantes de la simulacion
     double m = 1.0, r = 1.0;
@@ -134,7 +112,7 @@ int main()
 
     double x0=0, x4, x1=1, x2=std::sqrt(2), x3=1;
 
-    double omega = 2*M_PI*0.125, A = 0.1;
+    double A = 0.1;
     //Variables auxiliares para correr la simulacion
     int i;
     double Ncuadros=300, t , tdibujo, dt=1e-2,
@@ -152,9 +130,7 @@ int main()
     bolas[3].Inicie(x00 + 3*l0 + x3, v0, m, r);    
     bolas[4].Inicie(x00 + 4*l0, v0, m, r);
 
-    //Simulacion    
-    InicieAnimacion();
-    std::vector<double> datos;
+    //Simulacion   
 
     for (t=tdibujo=0; t<tmax ; t+=dt, tdibujo+=dt)
     {     
@@ -163,15 +139,6 @@ int main()
             x=bolas[1].Getx();
             if(x_max < x) x_max = x; 
             if(x_min > x) x_min = x; 
-            datos.push_back(x);
-        }
-
-        //Creacion de los cuadros del GIF e imagen
-        if(tdibujo>Tcuadro){
-            InicieCuadro();
-            for (int i = 0; i<N; i++)bolas[i].Dibujese();    
-            TermineCuadro();
-            tdibujo=0; 
         }
 
         //Calculo del movimiento forzado
@@ -195,17 +162,22 @@ int main()
     }
 
     amplitud=(x_max-x_min)/2;
-    std::ofstream archivo;
-    archivo.open("forzado.dat");
-    archivo<<"t\tx\tAmplitud: "<<amplitud<<'\t'<<x_max<<'\t'<<x_min<<std::endl;
+    return amplitud;
+}
 
-    t=tcut;
-    for (auto j : datos)
+int main()
+{
+    double amplitud;
+    std::ofstream datafile;
+    datafile.open("amplitud.dat");
+    datafile<<"omega\tamplitud"<<std::endl;
+
+    for (double omega = 0.1; omega < 3; omega+=0.01)
     {
-        archivo<<t<<"\t"<<j<<std::endl;
-        t+=dt;
+        amplitud = simulacion(omega);
+        datafile<<omega<<"\t"<<amplitud<<std::endl;
     }
-
-    archivo.close();
+    
+    datafile.close();
     return 0;
 }

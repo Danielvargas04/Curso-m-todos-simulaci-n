@@ -1,8 +1,9 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
+#include <vector>
 #include "vector.h"
-#include "Random64.h"
+
 //Constantes globales
 const int N=5;
 const double k=1.0, l0 = 10.0;
@@ -22,7 +23,7 @@ class Colisionador;
 class Cuerpo{
 private:
     //Atributos de la clase
-    vector3D r,V,F; 
+    vector3D r, V, F; 
     double m,R; 
 public:
     //Metodos de la clase
@@ -42,7 +43,7 @@ private:
     //Atributos
 public:
     //Metodos  
-    void CalculeTodasLasFuerzas(Cuerpo * bola, double dt);
+    void CalculeTodasLasFuerzas(Cuerpo * bola);
     void CalculeFuerzaEntre(Cuerpo & bola1,Cuerpo & bola2);
 };
 
@@ -61,10 +62,11 @@ void Cuerpo::Dibujese(void){
 }
 
 //------- Funciones de la clase Colisionador --------
-void Colisionador::CalculeTodasLasFuerzas(Cuerpo * bolas, double dt){
+void Colisionador::CalculeTodasLasFuerzas(Cuerpo * bolas){
     int i;
     //Borro las fuerzas de todas las bolas
-    for(i=0; i<N; i++){
+    for(i=0; i<N; i++)
+    {
         bolas[i].BorreFuerza();
     }
     //Calculo la fuerza de cada particula con su vecina siguiente
@@ -74,9 +76,9 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * bolas, double dt){
     }
     
 }
-void Colisionador::CalculeFuerzaEntre(Cuerpo & bola0,Cuerpo & bola1){
+void Colisionador::CalculeFuerzaEntre(Cuerpo & bola0, Cuerpo & bola1){
     //Determinar las distancias entre las 2 bolas
-    vector3D r10=bola1.r-bola0.r;
+    vector3D r10 = bola1.r-bola0.r;
 
     //Calcula el desplazamiento
     double d = r10.norm()-l0;
@@ -92,6 +94,7 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & bola0,Cuerpo & bola1){
     f0 = (-1)*f; f1 = f;
 
     bola0.SumeFuerza(f0); bola1.SumeFuerza(f1);
+
 }
 
 //----------- Funciones Globales -----------
@@ -120,7 +123,8 @@ int main()
     //Cosntantes de la simulacion
     double m = 1.0, r = 1.0;
     double x00=0, v0=0;
-    double x0=0, x1=-1, x2=0, x3=1;
+    double x1=1, x2=-2*std::sqrt(2), x3=1;
+
     //Variables auxiliares para correr la simulacion
     int i;
     double Ncuadros=80, t , tdibujo, dt=1e-2,
@@ -140,15 +144,12 @@ int main()
     //Simulacion    
     InicieAnimacion();
 
-    std::ofstream archivo;
-    archivo.open("pos.txt");
-    archivo<<"t\tx"<<std::endl;
+    std::vector<double> datos;  
 
     for (t=tdibujo=0; t<tmax ; t+=dt, tdibujo+=dt)
     {     
-        archivo<<t<<"\t"<<bolas[1].Getx()<<std::endl;
-
-
+        
+        datos.push_back(bolas[1].Getx());
         //Creacion de los cuadros del GIF
         if(tdibujo>Tcuadro){
             InicieCuadro();
@@ -157,22 +158,35 @@ int main()
             tdibujo=0; 
         }
 
-
         //Integracion de movimiento para las 3 particulas moviles
         for(i=1; i<N-1; i++) bolas[i].Mueva_r(dt,xi);    
-        resorte.CalculeTodasLasFuerzas(bolas, dt); 
+        resorte.CalculeTodasLasFuerzas(bolas); 
         for(i=1; i<N-1; i++) bolas[i].Mueva_V(dt,Um2lambdau2);
         for(i=1; i<N-1; i++) bolas[i].Mueva_r(dt,chi);
-        resorte.CalculeTodasLasFuerzas(bolas, dt); 
+        resorte.CalculeTodasLasFuerzas(bolas); 
         for(i=1; i<N-1; i++) bolas[i].Mueva_V(dt,lambda);
         for(i=1; i<N-1; i++) bolas[i].Mueva_r(dt,Um2chiplusxi);
-        resorte.CalculeTodasLasFuerzas(bolas, dt); 
+        resorte.CalculeTodasLasFuerzas(bolas); 
         for(i=1; i<N-1; i++)bolas[i].Mueva_V(dt,lambda);
         for(i=1; i<N-1; i++) bolas[i].Mueva_r(dt,chi);
-        resorte.CalculeTodasLasFuerzas(bolas, dt); 
+        resorte.CalculeTodasLasFuerzas(bolas); 
         for(i=1; i<N-1; i++)bolas[i].Mueva_V(dt,Um2lambdau2);
         for(i=1; i<N-1; i++) bolas[i].Mueva_r(dt,xi);
+
+
+        
     }
-    archivo.close();
+
+    std::ofstream datafile;
+    datafile.open("pos.dat");
+    t=0;
+    for (auto j : datos)
+    {
+        datafile<<t<<"\t"<<j<<std::endl;
+        t+=dt;
+    }
+    
+
+    datafile.close();
     return 0;
 }

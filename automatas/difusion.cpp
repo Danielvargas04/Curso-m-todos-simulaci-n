@@ -2,7 +2,7 @@
 #include <cmath>
 #include "Random64.h"
 
-const int Lx=1024;
+const int Lx=128;
 const double p=0.5;
 
 const int Q=2;
@@ -12,14 +12,13 @@ class lattice_gas
 private:
     //V[0]:derecha , V[1]:izquierda 
     int V[Q];
-    int n[Lx][Q];
-    int nnew[Lx][Q];
+    double f[Lx][Q],fnew[Lx][Q]; // f[ix][i]
 public:
     lattice_gas(void);
     void borrese(void);
-    void inicie(int N, double mu, double sigma, Crandom & ran64);
+    void inicie(double mu, double sigma);
     void show(void);
-    void colisione(Crandom & ran64);
+    void colisione(void);
     void adveccione(void);
     double rho(int ix, bool UseNew);
     double get_sigma2(void);
@@ -36,62 +35,35 @@ lattice_gas::lattice_gas(void)
 void lattice_gas::borrese(void)
 {
     for (int ix = 0; ix < Lx; ix++)
-    {
         for (int i = 0; i < Q; i++)
         {
-            n[ix][i]=0;
-        }
-    }
-    
+            f[ix][i]=0;
+        }    
 }
 
-void lattice_gas::inicie(int N, double mu, double sigma, Crandom & ran64)
+void lattice_gas::inicie(double mu, double sigma)
 {
-    int ix, i;
-    while (N>0)
-    {
-        //Escoge al azar un lugar y una direcion
-        ix = (int) ran64.gauss(mu, sigma);
-        if(ix<0) ix=0;
-        if(ix>=Lx) ix=Lx-1;
-
-        if (ran64.r()<0.5) i=0; else i=1;       
-
-        if(n[ix][i]==0)
-        {
-            n[ix][i]++;
-            N--;
-        }
-    }
+    for(int ix=0;ix<Lx;ix++)
+        for(int i=0;i<Q;i++)
+            f[ix][i]=fnew[ix][i]=0.5/(sigma*sqrt(2*M_PI))*exp(-0.5*pow((ix-mu)/sigma,2.0));
 }
 
 void lattice_gas::show(void)
 {
-    for (int i = 0; i < Q; i++)
-    {
-        for (int ix = 0; ix < Lx; ix++)
-        {
-            std::cout<<n[ix][i]<<" ";
-        }
-        std::cout<<std::endl;
-    }
+    for(int ix=0;ix<Lx;ix++)
+        std::cout<<ix<<" "<<rho(ix,true)<<std::endl;
     std::cout<<std::endl;
 }
 
-void lattice_gas::colisione(Crandom & ran64)
+void lattice_gas::colisione(void)
 {
-    for (int ix = 0; ix < Lx; ix++)
-    {
-        if (ran64.r()<p) 
-            for (int i = 0; i < Q; i++)
-                nnew[ix][i]=n[ix][i]; //lo dejo igual
-
-        else
-            for (int i = 0; i < Q; i++)
-                nnew[ix][i]=n[ix][(i+1)%2]; //intercambio los contenidos
-
-    }
-    
+    int ix,i,j;
+    for(ix=0;ix<Lx;ix++) //para cada celda
+        for(int i=0;i<Q;i++)
+        {
+            j=(i+1)%2; 
+            fnew[ix][i]=p*f[ix][i]+(1-p)*f[ix][j];
+        }    
 }
 
 void lattice_gas::adveccione(void)
@@ -99,34 +71,33 @@ void lattice_gas::adveccione(void)
     for ( int ix = 0; ix < Lx; ix++)
         for (int i = 0; i < Q; i++)
         {
-            n[(ix+V[i]+Lx)%Lx][i] = nnew[ix][i]; //se copia el valor nuevo
+            f[(ix+V[i]+Lx)%Lx][i] = fnew[ix][i]; //se copia el valor nuevo
         }
 }
 
 double lattice_gas::rho(int ix, bool UseNew)
 {
     if(UseNew)
-        return nnew[ix][0] + nnew[ix][1];
+        return fnew[ix][0] + fnew[ix][1];
     else    
-        return n[ix][0] + n[ix][1];
+        return f[ix][0] + f[ix][1];
 }
 
 double lattice_gas::get_sigma2(void)
 {
-    double prom=0, sigma2=0;
-    int ix, N=0;
+    double prom=0, sigma2=0, N=0;
     //Calcular el promedio
     for (int ix = 0; ix < Lx; ix++)
     {
-        N += rho(ix, false);
-        prom += ix*rho(ix, false);
+        N += rho(ix, true);
+        prom += ix*rho(ix, true);
     }
     prom/=N;
 
     //Calcular sigma2
-    for(ix=0;ix<Lx;ix++)
-        sigma2+=pow(ix-prom,2.0)*rho(ix,false);
-    sigma2/=(N-1);
+    for(int ix=0; ix < Lx; ix++)
+        sigma2+=pow(ix-prom,2.0)*rho(ix,true);
+    sigma2/=N;
 
     return sigma2;
 }
@@ -138,20 +109,21 @@ int main (void)
     lattice_gas difusion;
     Crandom ran64(1);
 
-    int N = (int) Lx*0.1;
+    int N = 1;
     double mu= Lx/2;
-    double sigma= Lx/8;
+    double sigma= Lx/64;
     int t, tmax=400;
 
     difusion.borrese();
-    difusion.inicie(N, mu, sigma, ran64);
+    difusion.inicie(mu, sigma );
 
     for ( t = 0; t < tmax; t++)
     {
         std::cout<<t<<" "<<difusion.get_sigma2()<<std::endl;
-        difusion.colisione(ran64);
+        difusion.colisione();
         difusion.adveccione();
     }
-
+    //difusion.show();
+    
     return 0;
 }

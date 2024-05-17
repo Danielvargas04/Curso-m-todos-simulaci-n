@@ -1,10 +1,10 @@
 all: karman.gif
 
-fluidos.x: fluidos.cpp
-	g++ fluidos.cpp -o fluidos.x
+forzamiento.x: forzamiento.cpp
+	g++ forzamiento.cpp -o forzamiento.x
 
-karman.gif: fluidos.x
-	./fluidos.x | gnuplot
+karman.gif: forzamiento.x
+	./forzamiento.x | gnuplot
 
 .PHONY: clean
 clean:

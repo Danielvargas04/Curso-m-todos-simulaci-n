@@ -10,6 +10,7 @@ all: main
 
 #Objetivos secundarios
 cuda_target=ondas.xu
+atomic=atomic.xu
 
 # Compila los archivos fuente en objetos
 %.o: %.cpp
@@ -17,7 +18,7 @@ cuda_target=ondas.xu
 
 
 %.xu: %.cu 
-	$(CUDA) $(CUDAFLAGS) $< -o $(cuda_target)
+	$(CUDA) $(CUDAFLAGS) $< -o $@
 
 run-ondas: ondas.xu
 	./$(cuda_target)

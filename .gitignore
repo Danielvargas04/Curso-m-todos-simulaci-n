@@ -10,3 +10,5 @@
 **/*.out
 **/*.xu
 **/PLASMA_LB
+**/vector.h
+**/Random64.h
